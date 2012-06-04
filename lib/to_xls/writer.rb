@@ -53,7 +53,7 @@ module ToXls
     def columns
       return  @columns if @columns
       @columns = @options[:columns]
-      raise ArgumentError.new(":columns (#{columns}) must be an array or nil") unless (@columns.nil? || @columns.is_a?(Array))
+      raise ArgumentError.new(":columns (#{columns}) must be an Array, Range or nil") unless (@columns.nil? || @columns.is_a?(Array) || @columns.is_a?(Range))
       @columns ||=  can_get_columns_from_first_element? ? get_columns_from_first_element : []
     end
 
@@ -95,8 +95,10 @@ private
         row.push(model ? model.send(column) : column)
       when Hash
         column.each{|key, values| fill_row(row, values, model && model.send(key))}
-      when Array
+      when Array, Range
         column.each{|value| fill_row(row, value, model)}
+      when Fixnum
+        row.push(model ? model[column] : column)
       else
         raise ArgumentError, "column #{column} has an invalid class (#{ column.class })"
       end
